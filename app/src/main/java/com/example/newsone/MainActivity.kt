@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun fetchTopHeadlines() {
-        RetrofitInstance.api.getTopHeadlines("us", "your_api_key_here")
+        RetrofitInstance.api.getTopHeadlines("us", "05f57c89ed4947a9a255769ef7650b57")
             .enqueue(object : Callback<NewsResponse> {
                 override fun onResponse(call: Call<NewsResponse>, response: Response<NewsResponse>) {
                     if (response.isSuccessful) {

@@ -8,6 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.newsone.R
+import com.example.newsone.helper.getRelativeTime
 import com.example.newsone.models.NewsArticle
 import com.example.newsone.ui.NewsDetailActivity
 import com.squareup.picasso.Picasso
@@ -22,6 +23,7 @@ class NewsAdapter(private val articles: List<NewsArticle>) : RecyclerView.Adapte
         val description: TextView = itemView.findViewById(R.id.description)
         val image: ImageView = itemView.findViewById(R.id.image)
         val publishedAt: TextView = itemView.findViewById(R.id.publishedAt)
+        val author: TextView = itemView.findViewById(R.id.author) // Add this line to get the author TextView
 
         init {
             itemView.setOnClickListener {
@@ -34,10 +36,8 @@ class NewsAdapter(private val articles: List<NewsArticle>) : RecyclerView.Adapte
                         putExtra("publishedAt", article.publishedAt)
                         putExtra("author", article.author)
                         putExtra("sourceName", article.source.name)
-                        putExtra("description", article.description)
                         putExtra("content", article.content)
-                        putExtra("url", article.url) // Make sure this is included
-
+                        putExtra("url", article.url)
                     }
                     itemView.context.startActivity(intent)
                 }
@@ -52,13 +52,42 @@ class NewsAdapter(private val articles: List<NewsArticle>) : RecyclerView.Adapte
 
     override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
         val article = articles[position]
+
+        // Set the title, description, and image
         holder.title.text = article.title
-        holder.description.text = article.description
-        holder.publishedAt.text = article.publishedAt
+        holder.description.text = article.description ?: "No description available"
+        holder.publishedAt.text = getRelativeTime(article.publishedAt ?: "")
+
+        // Format author and source
+        val authorText = if (!article.author.isNullOrEmpty()) {
+            "${article.author}; ${article.source.name}"
+        } else {
+            article.source.name  // Show only source if author is unavailable
+        }
+        holder.author.text = authorText
+
+        // Load image if available
         if (!article.urlToImage.isNullOrEmpty()) {
             Picasso.get().load(article.urlToImage).into(holder.image)
+        } else {
+            holder.image.setImageResource(R.drawable.placeholder_image) // Optional placeholder image
+        }
+
+        // Handle click events to navigate to details
+        holder.itemView.setOnClickListener {
+            val intent = Intent(holder.itemView.context, NewsDetailActivity::class.java).apply {
+                putExtra("title", article.title)
+                putExtra("imageUrl", article.urlToImage)
+                putExtra("publishedAt", article.publishedAt)
+                putExtra("author", article.author)
+                putExtra("sourceName", article.source.name)
+                putExtra("description", article.description)
+                putExtra("url", article.url) // Pass the article URL for scraping
+            }
+            holder.itemView.context.startActivity(intent)
         }
     }
+
 
     override fun getItemCount() = articles.size
 }
